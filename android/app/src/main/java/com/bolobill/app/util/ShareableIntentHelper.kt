@@ -12,21 +12,11 @@ import com.bolobill.app.data.model.Invoice
 import java.io.File
 import java.util.Locale
 
-/**
- * ShareableIntentHelper:
- * Constructs dynamic, localized WhatsApp billing messages and dispatches
- * scoped FileProvider URIs for seamless one-tap invoice sharing without
- * requiring storage permissions (compliant with Android 15 & Google Play policies).
- */
 object ShareableIntentHelper {
-
     private const val FILE_PROVIDER_AUTHORITY_SUFFIX = ".fileprovider"
     const val PACKAGE_WHATSAPP = "com.whatsapp"
     const val PACKAGE_WHATSAPP_BUSINESS = "com.whatsapp.w4b"
 
-    /**
-     * Constructs a pre-formatted, polite Hindi greeting and payment status message.
-     */
     fun buildWhatsAppMessage(clientName: String, amount: Double, isPaid: Boolean): String {
         val formattedAmount = String.format(Locale.ROOT, "%.0f", amount)
         return if (isPaid) {
@@ -36,19 +26,12 @@ object ShareableIntentHelper {
         }
     }
 
-    /**
-     * Generates a secure content URI using AndroidX FileProvider.
-     * Grants temporary read permission to targeted receiving applications (WhatsApp/Drive).
-     */
     fun getFileProviderUri(context: Context, pdfFile: File): Uri {
         require(pdfFile.exists()) { "Invoice PDF file does not exist: ${pdfFile.absolutePath}" }
         val authority = "${context.packageName}$FILE_PROVIDER_AUTHORITY_SUFFIX"
         return FileProvider.getUriForFile(context, authority, pdfFile)
     }
 
-    /**
-     * Resolves whether standard WhatsApp or WhatsApp Business is installed.
-     */
     fun getInstalledWhatsAppPackage(context: Context): String? {
         val pm = context.packageManager
         return try {
@@ -64,10 +47,6 @@ object ShareableIntentHelper {
         }
     }
 
-    /**
-     * Dispatches the invoice PDF and pre-formatted text directly to WhatsApp with 1-tap.
-     * Gracefully falls back to Android System Share Sheet if WhatsApp is not installed.
-     */
     fun shareInvoiceViaWhatsApp(
         context: Context,
         invoice: Invoice,
@@ -77,7 +56,6 @@ object ShareableIntentHelper {
         val messageText = buildWhatsAppMessage(invoice.clientName, invoice.totalAmount, isPaid)
         val contentUri = getFileProviderUri(context, pdfFile)
         val targetPackage = getInstalledWhatsAppPackage(context)
-
         val sendIntent = Intent(Intent.ACTION_SEND).apply {
             type = "application/pdf"
             putExtra(Intent.EXTRA_STREAM, contentUri)
@@ -88,11 +66,9 @@ object ShareableIntentHelper {
                 setPackage(targetPackage)
             }
         }
-
         try {
             context.startActivity(sendIntent)
         } catch (e: Exception) {
-            // Fallback to standard system share chooser
             val chooserIntent = Intent(Intent.ACTION_SEND).apply {
                 type = "application/pdf"
                 putExtra(Intent.EXTRA_STREAM, contentUri)
@@ -103,9 +79,6 @@ object ShareableIntentHelper {
         }
     }
 
-    /**
-     * Opens the generated PDF in an installed external PDF viewer (e.g., Google Drive, Adobe).
-     */
     fun openPdfInExternalViewer(context: Context, pdfFile: File) {
         try {
             val contentUri = getFileProviderUri(context, pdfFile)
@@ -119,9 +92,6 @@ object ShareableIntentHelper {
         }
     }
 
-    /**
-     * Copies the pre-formatted WhatsApp text message to clipboard with feedback.
-     */
     fun copyMessageToClipboard(context: Context, message: String) {
         val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         val clip = ClipData.newPlainText("BoloBill WhatsApp Message", message)
