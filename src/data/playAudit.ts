@@ -1,0 +1,58 @@
+import { PlayAuditItem } from '../types';
+
+export const PLAY_STORE_AUDIT_ITEMS: PlayAuditItem[] = [
+  {
+    id: 'audit_perm_sms',
+    category: 'PERMISSIONS',
+    title: 'Zero SMS Broad Permissions (READ_SMS / RECEIVE_SMS)',
+    playStoreRule: 'Google Play SMS and Call Log Permissions Policy',
+    status: 'PASSED',
+    details: 'Verified: BoloBill strictly does not declare or request READ_SMS, RECEIVE_SMS, or SEND_SMS. UPI invoices are created via intent-based handoffs.',
+    implementationRef: 'AndroidManifest.xml',
+  },
+  {
+    id: 'audit_perm_storage',
+    category: 'PERMISSIONS',
+    title: 'Zero MANAGE_EXTERNAL_STORAGE Declaration',
+    playStoreRule: 'All Files Access (MANAGE_EXTERNAL_STORAGE) Policy',
+    status: 'PASSED',
+    details: 'Verified: No broad storage permission declared. Complies 100% with Google Play Store target API 35 storage restrictions.',
+    implementationRef: 'AndroidManifest.xml',
+  },
+  {
+    id: 'audit_media_picker',
+    category: 'MEDIA',
+    title: 'Native Android Photo Picker Integration',
+    playStoreRule: 'Photo and Video Permissions Policy (READ_MEDIA_IMAGES)',
+    status: 'PASSED',
+    details: 'Verified: Implemented using ActivityResultContracts.PickVisualMedia. Eliminates need for READ_MEDIA_IMAGES or READ_EXTERNAL_STORAGE permissions entirely.',
+    implementationRef: 'PhotoPickerHelper.kt & BillBuilderScreen.kt',
+  },
+  {
+    id: 'audit_storage_scoped',
+    category: 'STORAGE',
+    title: 'Scoped Storage & Android FileProvider',
+    playStoreRule: 'Scoped Storage & Secure File Sharing Enforcement',
+    status: 'PASSED',
+    details: 'All generated PDFs are written to context.cacheDir/invoices and shared to WhatsApp via androidx.core.content.FileProvider with FLAG_GRANT_READ_URI_PERMISSION.',
+    implementationRef: 'PdfGenerator.kt & file_paths.xml',
+  },
+  {
+    id: 'audit_sdk_target',
+    category: 'SDK_TARGET',
+    title: 'Target SDK 35+ (Android 15 Compatibility)',
+    playStoreRule: 'Google Play Target API Level Requirement (API 34/35)',
+    status: 'PASSED',
+    details: 'Build configuration targets API 35 with edge-to-edge Compose rendering and zero foreground service abuse or hidden background tasks.',
+    implementationRef: 'build.gradle.kts & AndroidManifest.xml',
+  },
+  {
+    id: 'audit_package_query',
+    category: 'PERMISSIONS',
+    title: 'Explicit Package Queries (Zero QUERY_ALL_PACKAGES)',
+    playStoreRule: 'Package Visibility (QUERY_ALL_PACKAGES) Policy',
+    status: 'PASSED',
+    details: 'Scoped <queries> tag targets only com.whatsapp, com.whatsapp.w4b, and UPI view actions instead of declaring blanket package visibility.',
+    implementationRef: 'AndroidManifest.xml',
+  },
+];

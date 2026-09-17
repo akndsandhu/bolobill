@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Scoped cache directory for generated A4 PDFs shared to WhatsApp -->
+    <cache-path name="invoice_cache" path="invoices/" />
+
+    <!-- Scoped cache directory for compressed work proof thumbnails -->
+    <cache-path name="work_proofs_cache" path="work_proofs/" />
+
+    <!-- App-specific external documents directory -->
+    <external-files-path name="invoice_documents" path="Documents/Invoices/" />
+</paths>

@@ -1,0 +1,6 @@
+{
+  "name": "BoloBill",
+  "description": "Voice-to-Quotation & UPI Invoice App with offline trade dictionary, work proof photos, warranty badge, and instant payment receipt mode.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
