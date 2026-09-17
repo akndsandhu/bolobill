@@ -17,9 +17,8 @@ object TradeDictionary {
     )
 
     private val DICTIONARY = listOf(
-        // ==================== ELECTRICAL TRADES ====================
         TradeItemDefinition(
-            devanagariKeywords = listOf("पंखा", "पंखे", "सीलिंग फैन", "छत का पंखा"),
+            devanagariKeywords = listOf("पंखा", "पंखे", "सीलिंग फैन", "फैन"),
             hinglishKeywords = listOf("pankha", "pankhe", "fan", "ceiling fan"),
             englishProfessional = "Ceiling Fan",
             hinglishColloquial = "Ceiling Fan Fitting",
@@ -28,7 +27,7 @@ object TradeDictionary {
             tradeCategory = "Electrical"
         ),
         TradeItemDefinition(
-            devanagariKeywords = listOf("तार", "वायर", "वायरिंग", "केबल"),
+            devanagariKeywords = listOf("तार", "वायर", "केबल", "वायरिंग"),
             hinglishKeywords = listOf("taar", "tar", "wire", "cable", "wiring"),
             englishProfessional = "Electrical Wiring",
             hinglishColloquial = "Taar Wiring",
@@ -37,7 +36,7 @@ object TradeDictionary {
             tradeCategory = "Electrical"
         ),
         TradeItemDefinition(
-            devanagariKeywords = listOf("स्विच", "बोर्ड", "प्लग", "सॉकेट", "स्विच बोर्ड"),
+            devanagariKeywords = listOf("स्विच", "बोर्ड", "स्विचबोर्ड", "प्लग", "सॉकेट"),
             hinglishKeywords = listOf("switch", "switch board", "switchboard", "board", "plug", "socket"),
             englishProfessional = "Modular Switch Board",
             hinglishColloquial = "Switch Board Fitting",
@@ -46,7 +45,7 @@ object TradeDictionary {
             tradeCategory = "Electrical"
         ),
         TradeItemDefinition(
-            devanagariKeywords = listOf("एमसीबी", "एमसीबी बॉक्स", "कट आउट", "ट्रिप स्विच"),
+            devanagariKeywords = listOf("एमसीबी", "कटआउट", "ट्रिप स्विच"),
             hinglishKeywords = listOf("mcb", "mcb box", "cutout", "trip switch"),
             englishProfessional = "MCB Circuit Breaker",
             hinglishColloquial = "MCB Box Fitting",
@@ -55,7 +54,7 @@ object TradeDictionary {
             tradeCategory = "Electrical"
         ),
         TradeItemDefinition(
-            devanagariKeywords = listOf("लाइट", "बल्ब", "ट्यूबलाइट", "एलईडी", "होल्डर"),
+            devanagariKeywords = listOf("लाइट", "बल्ब", "ट्यूबलाइट", "एलईडी"),
             hinglishKeywords = listOf("light", "bulb", "tubelight", "led", "cfl", "holder"),
             englishProfessional = "LED Fixture & Tubelight",
             hinglishColloquial = "Light Fitting",
@@ -63,10 +62,8 @@ object TradeDictionary {
             standardUnit = "nos",
             tradeCategory = "Electrical"
         ),
-
-        // ==================== PLUMBING TRADES ====================
         TradeItemDefinition(
-            devanagariKeywords = listOf("नल", "टोटी", "टैप", "बिब कॉक"),
+            devanagariKeywords = listOf("नल", "टोटी", "टैप", "वाटर टैप"),
             hinglishKeywords = listOf("nal", "toti", "tap", "bib cock", "water tap"),
             englishProfessional = "Brass / Chrome Water Tap",
             hinglishColloquial = "Tap Fitting",
@@ -75,7 +72,7 @@ object TradeDictionary {
             tradeCategory = "Plumbing"
         ),
         TradeItemDefinition(
-            devanagariKeywords = listOf("पाइप", "प्लंबिंग", "पीवीसी पाइप", "सीपीवीसी पाइप", "वाटर पाइप"),
+            devanagariKeywords = listOf("पाइप", "पीवीसी पाइप", "पानी पाइप"),
             hinglishKeywords = listOf("pipe", "pvc pipe", "cpvc pipe", "water pipe", "plumbing pipe"),
             englishProfessional = "PVC / Copper Piping",
             hinglishColloquial = "Piping Line Work",
@@ -84,7 +81,7 @@ object TradeDictionary {
             tradeCategory = "Plumbing"
         ),
         TradeItemDefinition(
-            devanagariKeywords = listOf("टंकी", "वाटर टैंक", "फ्लश", "सिस्टर्न"),
+            devanagariKeywords = listOf("टंकी", "वाटर टैंक", "फ्लश"),
             hinglishKeywords = listOf("tanki", "tank", "water tank", "flush", "cistern"),
             englishProfessional = "Water Tank & Flush Repair",
             hinglishColloquial = "Tanki Repair Work",
@@ -93,18 +90,7 @@ object TradeDictionary {
             tradeCategory = "Plumbing"
         ),
         TradeItemDefinition(
-            devanagariKeywords = listOf("बेसिन", "वाश बेसिन", "सिंक", "नाली"),
-            hinglishKeywords = listOf("basin", "wash basin", "washbasin", "sink", "drain", "nali"),
-            englishProfessional = "Wash Basin & Sink Fitting",
-            hinglishColloquial = "Basin Fitting Work",
-            defaultRate = 400.0,
-            standardUnit = "nos",
-            tradeCategory = "Plumbing"
-        ),
-
-        // ==================== CARPENTRY TRADES ====================
-        TradeItemDefinition(
-            devanagariKeywords = listOf("दरवाजा", "किवाड़", "डोर", "चौखट"),
+            devanagariKeywords = listOf("दरवाजा", "चौखट", "कवाड़"),
             hinglishKeywords = listOf("darwaza", "darwaja", "door", "chaukhat", "kivaad"),
             englishProfessional = "Door Fitting & Alignment",
             hinglishColloquial = "Darwaza Fitting",
@@ -113,36 +99,7 @@ object TradeDictionary {
             tradeCategory = "Carpentry"
         ),
         TradeItemDefinition(
-            devanagariKeywords = listOf("अलमारी", "वार्डरोब", "कपाट", "कबर्ड"),
-            hinglishKeywords = listOf("almari", "almirah", "wardrobe", "cupboard", "kapat"),
-            englishProfessional = "Wooden Wardrobe Work",
-            hinglishColloquial = "Almari Work",
-            defaultRate = 800.0,
-            standardUnit = "job",
-            tradeCategory = "Carpentry"
-        ),
-        TradeItemDefinition(
-            devanagariKeywords = listOf("ताला", "लॉक", "हैंडल", "कब्ज़ा"),
-            hinglishKeywords = listOf("tala", "lock", "handle", "kabza", "hinge", "hinges"),
-            englishProfessional = "Lock & Hinges Fitting",
-            hinglishColloquial = "Tala Kabza Fitting",
-            defaultRate = 250.0,
-            standardUnit = "nos",
-            tradeCategory = "Carpentry"
-        ),
-        TradeItemDefinition(
-            devanagariKeywords = listOf("प्लाई", "प्लाईवुड", "फर्नीचर", "टेबल", "कुर्सी"),
-            hinglishKeywords = listOf("ply", "plywood", "furniture", "table", "kursi"),
-            englishProfessional = "Plywood & Furniture Repair",
-            hinglishColloquial = "Furniture Work",
-            defaultRate = 450.0,
-            standardUnit = "job",
-            tradeCategory = "Carpentry"
-        ),
-
-        // ==================== GENERAL LABOUR ====================
-        TradeItemDefinition(
-            devanagariKeywords = listOf("फिटिंग", "लगाना", "फिक्सिंग", "मरम्मत"),
+            devanagariKeywords = listOf("फिटिंग", "लगाना", "मरम्मत", "काम"),
             hinglishKeywords = listOf("fitting", "lagana", "lagai", "fixing", "installation", "marammat"),
             englishProfessional = "Installation & Fitting",
             hinglishColloquial = "Fitting Work",
