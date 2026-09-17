@@ -509,14 +509,11 @@ fun PaidWatermarkStamp(
     isPaid: Boolean,
     modifier: Modifier = Modifier
 ) {
-    // 1. Alpha fade-in animation
     val watermarkAlpha by animateFloatAsState(
         targetValue = if (isPaid) 0.85f else 0.0f,
         animationSpec = tween(durationMillis = 400, easing = FastOutSlowInEasing),
         label = "WatermarkAlpha"
     )
-
-    // 2. Scale bounce / stamp impact animation
     val watermarkScale by animateFloatAsState(
         targetValue = if (isPaid) 1.0f else 1.30f,
         animationSpec = spring(
@@ -525,8 +522,6 @@ fun PaidWatermarkStamp(
         ),
         label = "WatermarkScale"
     )
-
-    // 3. Diagonal rotation tilt settling
     val watermarkRotation by animateFloatAsState(
         targetValue = if (isPaid) -18f else -24f,
         animationSpec = spring(
