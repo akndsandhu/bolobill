@@ -1,10 +1,7 @@
 package com.bolobill.app.ui.screens
 
 import android.content.Context
-import android.content.Intent
-import android.net.Uri
 import android.widget.Toast
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -16,7 +13,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.core.content.FileProvider
 import com.bolobill.app.data.model.Invoice
 import com.bolobill.app.pdf.PdfGenerator
 import com.bolobill.app.util.ShareableIntentHelper
@@ -25,19 +21,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 
-/**
- * PdfPreviewScreen: Review, toggle Instant Receipt (Mark as Paid), and Share via WhatsApp.
- *
- * CRITICAL FEATURES:
- * 1. 1-Tap "Mark as Paid" receipt toggle:
- *    - Updates invoice state and generates clearance stamp.
- *    - Triggers canvas diagonal semi-transparent watermark.
- * 2. Dynamic WhatsApp message generation:
- *    - If Unpaid: "नमस्ते [Name], आपका बिल ₹[Amount] तैयार है। कृपया UPI QR कोड स्कैन करके भुगतान करें। धन्यवाद!"
- *    - If Paid: "नमस्ते [Name], आपका भुगतान ₹[Amount] सफलतापूर्वक प्राप्त हो गया है। रसीद संलग्न है।"
- * 3. Zero broad permissions:
- *    - Shares PDF via Android FileProvider (FLAG_GRANT_READ_URI_PERMISSION).
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PdfPreviewScreen(
@@ -47,7 +30,6 @@ fun PdfPreviewScreen(
 ) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
-
     var isPaidState by remember { mutableStateOf(invoice.isPaid) }
     var generatedPdfFile by remember { mutableStateOf<File?>(null) }
     var isRenderingPdf by remember { mutableStateOf(true) }
@@ -140,7 +122,7 @@ fun PdfPreviewScreen(
                         )
                         Column {
                             Text(
-                                text = if (isPaidState) "Marked as Paid (भुगतान प्राप्त)" else "Payment Pending (बाकी)",
+                                text = if (isPaidState) "Marked as Paid (भुगतान प्राप्त)" else "Payment Pending (भुगतान बाकी)",
                                 style = MaterialTheme.typography.titleMedium,
                                 color = if (isPaidState) Color(0xFF166534) else MaterialTheme.colorScheme.onSurface
                             )
@@ -151,7 +133,6 @@ fun PdfPreviewScreen(
                             )
                         }
                     }
-
                     Switch(
                         checked = isPaidState,
                         onCheckedChange = { isPaidState = it },
@@ -173,7 +154,7 @@ fun PdfPreviewScreen(
                         Spacer(Modifier.width(6.dp))
                         Text("WhatsApp Message Preview:", style = MaterialTheme.typography.labelMedium, color = Color(0xFF128C7E))
                     }
-                    val msg = getWhatsAppMessage(invoice.clientName, invoice.totalAmount, isPaidState)
+                    val msg = ShareableIntentHelper.buildWhatsAppMessage(invoice.clientName, invoice.totalAmount, isPaidState)
                     Text(text = msg, style = MaterialTheme.typography.bodyMedium, color = Color(0xFF1F2937))
                 }
             }
@@ -217,15 +198,6 @@ fun PdfPreviewScreen(
                 }
             }
         }
-    }
-}
-
-fun getWhatsAppMessage(clientName: String, amount: Double, isPaid: Boolean): String {
-    val formattedAmount = String.format(java.util.Locale.ROOT, "%.0f", amount)
-    return if (isPaid) {
-        "नमस्ते $clientName जी, आपके काम का कुल भुगतान ₹$formattedAmount प्राप्त हो गया है। रसीद संलग्न है। धन्यवाद!"
-    } else {
-        "नमस्ते $clientName जी, आपके काम का बिल ₹$formattedAmount है। कृपया संलग्न PDF में दिए गए UPI QR कोड से भुगतान करें। धन्यवाद!"
     }
 }
 
