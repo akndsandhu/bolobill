@@ -1,6 +1,5 @@
 package com.bolobill.app.ui.screens
 
-import android.widget.Toast
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
@@ -27,21 +26,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.bolobill.app.data.model.Invoice
 import com.bolobill.app.data.model.InvoiceItem
-import com.bolobill.app.util.PhotoPickerHelper
 import com.bolobill.app.util.TradeDictionary
 import com.bolobill.app.util.WorkProofThumbnailSlot
 
-/**
- * BillBuilderScreen: Primary Jetpack Compose screen for quotation creation.
- *
- * KEY FEATURES INTEGRATED:
- * 1. Before & After Work Proof Slots (Interactive Photo Picker)
- * 2. Warranty / Service Guarantee horizontal single-choice chip group
- * 3. Offline TradeDictionary Hinglish / English normalizer switch
- * 4. Voice dictation parser with real-time translation
- * 5. Instant Receipt Mode (Paid toggle) with Live Invoice Preview
- * 6. Subtle 'stamp' entry animation for the Paid watermark using animateFloatAsState
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BillBuilderScreen(
@@ -50,19 +37,15 @@ fun BillBuilderScreen(
     onNavigateToPreview: (Invoice) -> Unit
 ) {
     val context = LocalContext.current
-
     var clientName by remember { mutableStateOf(currentInvoice.clientName) }
     var clientPhone by remember { mutableStateOf(currentInvoice.clientPhone) }
     var clientAddress by remember { mutableStateOf(currentInvoice.clientAddress) }
     var selectedWarranty by remember { mutableStateOf(currentInvoice.warrantyTerm ?: "30_DAYS") }
     var languageMode by remember { mutableStateOf(if (currentInvoice.pdfLanguage == "HINGLISH") TradeDictionary.LanguageMode.HINGLISH else TradeDictionary.LanguageMode.ENGLISH) }
     var isPaid by remember { mutableStateOf(currentInvoice.isPaid) }
-
     var beforePhotoUri by remember { mutableStateOf(currentInvoice.beforePhotoUri) }
     var afterPhotoUri by remember { mutableStateOf(currentInvoice.afterPhotoUri) }
-
     val itemsList = remember { mutableStateListOf<InvoiceItem>().apply { addAll(currentInvoice.items) } }
-    var showVoiceDialog by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -105,16 +88,6 @@ fun BillBuilderScreen(
                         .padding(16.dp),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    OutlinedButton(
-                        onClick = { showVoiceDialog = true },
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(12.dp)
-                    ) {
-                        Icon(Icons.Default.Mic, contentDescription = "Bolo Voice")
-                        Spacer(Modifier.width(6.dp))
-                        Text("Bolo Bill")
-                    }
-
                     Button(
                         onClick = {
                             val subtotal = itemsList.sumOf { it.amount }
@@ -135,7 +108,7 @@ fun BillBuilderScreen(
                             onSaveInvoice(updated)
                             onNavigateToPreview(updated)
                         },
-                        modifier = Modifier.weight(1.5f),
+                        modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp)
                     ) {
                         Icon(Icons.Default.PictureAsPdf, contentDescription = "Generate PDF")
@@ -181,11 +154,11 @@ fun BillBuilderScreen(
                 }
             }
 
-            // FEATURE 1: Before & After Work Proof Photos
+            // Work Proof Photos
             item {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(
-                        text = "Work Proof Photos / कार्य प्रमाण (Before & After)",
+                        text = "Work Proof Photos / काम का फोटो (Before & After)",
                         style = MaterialTheme.typography.titleSmall
                     )
                     Row(
@@ -208,11 +181,11 @@ fun BillBuilderScreen(
                 }
             }
 
-            // FEATURE 2: Service Guarantee / Warranty Badge Horizontal Chip Group
+            // Service Guarantee
             item {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(
-                        text = "Service Guarantee / वारंटी स्टाम्प",
+                        text = "Service Guarantee / सर्विस गारंटी",
                         style = MaterialTheme.typography.titleSmall
                     )
                     val warrantyOptions = listOf(
@@ -247,7 +220,7 @@ fun BillBuilderScreen(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("Bill Items / कार्य सूची", style = MaterialTheme.typography.titleSmall)
+                    Text("Bill Items / बिल आइटम", style = MaterialTheme.typography.titleSmall)
                     TextButton(onClick = {
                         itemsList.add(
                             InvoiceItem(
@@ -294,7 +267,7 @@ fun BillBuilderScreen(
                 }
             }
 
-            // FEATURE 4: 1-Tap "Payment Receipt" Mode (Mark as Paid) Switch
+            // Mark as Paid Switch
             item {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
@@ -322,7 +295,7 @@ fun BillBuilderScreen(
                             )
                             Column {
                                 Text(
-                                    text = if (isPaid) "Marked as Paid (रसीद मोड)" else "Payment Pending (बाकी)",
+                                    text = if (isPaid) "Marked as Paid (भुगतान प्राप्त)" else "Payment Pending (भुगतान बाकी)",
                                     style = MaterialTheme.typography.titleSmall,
                                     color = if (isPaid) Color(0xFF166534) else MaterialTheme.colorScheme.onSurface
                                 )
@@ -333,7 +306,6 @@ fun BillBuilderScreen(
                                 )
                             }
                         }
-
                         Switch(
                             checked = isPaid,
                             onCheckedChange = { isPaid = it },
@@ -345,27 +317,13 @@ fun BillBuilderScreen(
                 }
             }
 
-            // Invoice Live Preview with animateFloatAsState Paid Watermark Stamp
+            // Live Preview Card
             item {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = "Invoice Live Preview / बिल पूर्वावलोकन",
-                            style = MaterialTheme.typography.titleSmall
-                        )
-                        if (isPaid) {
-                            Text(
-                                text = "Watermark Stamp Active",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = Color(0xFF16A34A)
-                            )
-                        }
-                    }
-
+                    Text(
+                        text = "Invoice Live Preview / लाइव बिल प्रिव्यू",
+                        style = MaterialTheme.typography.titleSmall
+                    )
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(14.dp),
@@ -378,12 +336,10 @@ fun BillBuilderScreen(
                                 .padding(16.dp),
                             contentAlignment = Alignment.Center
                         ) {
-                            // Invoice Preview Content
                             Column(
                                 modifier = Modifier.fillMaxWidth(),
                                 verticalArrangement = Arrangement.spacedBy(10.dp)
                             ) {
-                                // Header
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
                                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -413,55 +369,8 @@ fun BillBuilderScreen(
                                         )
                                     }
                                 }
-
                                 HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
 
-                                // Customer summary
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween
-                                ) {
-                                    Text(
-                                        text = "To: ${clientName.ifEmpty { "Customer Name" }}",
-                                        style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium)
-                                    )
-                                    Text(
-                                        text = clientPhone.ifEmpty { "+91 98765 43210" },
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.outline
-                                    )
-                                }
-
-                                // Items summary
-                                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                                    itemsList.take(3).forEach { item ->
-                                        Row(
-                                            modifier = Modifier.fillMaxWidth(),
-                                            horizontalArrangement = Arrangement.SpaceBetween
-                                        ) {
-                                            Text(
-                                                text = "• ${item.name}",
-                                                style = MaterialTheme.typography.bodySmall,
-                                                modifier = Modifier.weight(1f)
-                                            )
-                                            Text(
-                                                text = "₹${item.amount}",
-                                                style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.SemiBold)
-                                            )
-                                        }
-                                    }
-                                    if (itemsList.size > 3) {
-                                        Text(
-                                            text = "+ ${itemsList.size - 3} more items...",
-                                            style = MaterialTheme.typography.labelSmall,
-                                            color = MaterialTheme.colorScheme.outline
-                                        )
-                                    }
-                                }
-
-                                HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
-
-                                // Total Row
                                 val subtotal = itemsList.sumOf { it.amount }
                                 val total = subtotal - currentInvoice.discount
                                 Row(
@@ -483,7 +392,6 @@ fun BillBuilderScreen(
                                 }
                             }
 
-                            // Subtle 'stamp' entry animation for the Paid watermark in the invoice preview
                             PaidWatermarkStamp(
                                 isPaid = isPaid,
                                 modifier = Modifier.align(Alignment.Center)
@@ -496,14 +404,6 @@ fun BillBuilderScreen(
     }
 }
 
-/**
- * PaidWatermarkStamp: Subtle 'stamp' entry animation for the Paid watermark in the invoice preview.
- *
- * Uses animateFloatAsState in Jetpack Compose:
- * - watermarkAlpha: Fades in smoothly from 0f to 0.85f via tween(400, FastOutSlowInEasing).
- * - watermarkScale: Physics spring simulation easing down from 1.30f to 1.0f (simulating an ink stamp impact).
- * - watermarkRotation: Angular spring settling into -18 degrees diagonal tilt.
- */
 @Composable
 fun PaidWatermarkStamp(
     isPaid: Boolean,
