@@ -29,6 +29,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.exifinterface.media.ExifInterface
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.ByteArrayInputStream
 import java.io.File
@@ -36,36 +37,20 @@ import java.io.FileOutputStream
 import java.io.InputStream
 import java.util.UUID
 
-/**
- * PhotoPickerHelper: Google Play Store Policy Compliant Work Proof Manager.
- *
- * CRITICAL COMPLIANCE & EXIF HANDLING:
- * - Uses ActivityResultContracts.PickVisualMedia (Android Photo Picker).
- * - ZERO READ_MEDIA_IMAGES / READ_EXTERNAL_STORAGE permissions requested.
- * - Safely copies content:// URI into App's internal scoped storage (context.cacheDir/work_proofs).
- * - Downsamples large camera bitmaps into 480x360 targets to prevent OutOfMemory crashes.
- * - Automatically reads EXIF orientation tags and rotates portrait/landscape photos upright before saving,
- *   preventing vertical photos from rendering sideways on the A4 PDF invoice.
- */
 object PhotoPickerHelper {
-
     suspend fun persistWorkProofLocally(context: Context, sourceUri: Uri, prefix: String): String? =
         withContext(Dispatchers.IO) {
             try {
                 val directory = File(context.cacheDir, "work_proofs").apply { if (!exists()) mkdirs() }
                 val targetFile = File(directory, "${prefix}_${UUID.randomUUID()}.jpg")
-
                 context.contentResolver.openInputStream(sourceUri)?.use { input ->
                     val bytes = input.readBytes()
                     val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
                     BitmapFactory.decodeByteArray(bytes, 0, bytes.size, options)
-
                     options.inSampleSize = calculateInSampleSize(options, reqWidth = 480, reqHeight = 360)
                     options.inJustDecodeBounds = false
-
                     val rawBitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.size, options)
                     if (rawBitmap != null) {
-                        // Automatically correct orientation via EXIF before saving
                         val orientedBitmap = rotateBitmapIfRequired(rawBitmap, bytes)
                         FileOutputStream(targetFile).use { out ->
                             orientedBitmap.compress(Bitmap.CompressFormat.JPEG, 85, out)
@@ -83,10 +68,6 @@ object PhotoPickerHelper {
             }
         }
 
-    /**
-     * Inspects EXIF metadata from raw image bytes and returns the correctly rotated Bitmap.
-     * Prevents vertical smartphone photos from rendering sideways or upside-down on the A4 invoice.
-     */
     fun rotateBitmapIfRequired(bitmap: Bitmap, imageBytes: ByteArray): Bitmap {
         return try {
             val exif = ExifInterface(ByteArrayInputStream(imageBytes))
@@ -100,9 +81,6 @@ object PhotoPickerHelper {
         }
     }
 
-    /**
-     * Inspects EXIF metadata from an InputStream and returns the correctly rotated Bitmap.
-     */
     fun rotateBitmapIfRequired(bitmap: Bitmap, inputStream: InputStream): Bitmap {
         return try {
             val exif = ExifInterface(inputStream)
@@ -116,9 +94,6 @@ object PhotoPickerHelper {
         }
     }
 
-    /**
-     * Applies rotation / flip matrix corresponding to the EXIF orientation tag.
-     */
     private fun applyExifOrientation(bitmap: Bitmap, orientation: Int): Bitmap {
         val matrix = Matrix()
         when (orientation) {
@@ -137,7 +112,6 @@ object PhotoPickerHelper {
             }
             else -> return bitmap
         }
-
         return try {
             val rotated = Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
             if (rotated != bitmap) {
@@ -152,7 +126,6 @@ object PhotoPickerHelper {
     fun calculateInSampleSize(options: BitmapFactory.Options, reqWidth: Int, reqHeight: Int): Int {
         val (height: Int, width: Int) = options.outHeight to options.outWidth
         var inSampleSize = 1
-
         if (height > reqHeight || width > reqWidth) {
             val halfHeight: Int = height / 2
             val halfWidth: Int = width / 2
@@ -180,18 +153,14 @@ fun WorkProofThumbnailSlot(
     ) { uri: Uri? ->
         if (uri != null) {
             isProcessing = true
-            coroutineScope.run {
-                kotlinx.coroutines.launch(Dispatchers.IO) {
-                    val localUri = PhotoPickerHelper.persistWorkProofLocally(
-                        context = context,
-                        sourceUri = uri,
-                        prefix = title.lowercase().replace(" ", "_")
-                    )
-                    withContext(Dispatchers.Main) {
-                        onPhotoSelected(localUri)
-                        isProcessing = false
-                    }
-                }
+            coroutineScope.launch {
+                val localUri = PhotoPickerHelper.persistWorkProofLocally(
+                    context = context,
+                    sourceUri = uri,
+                    prefix = title.lowercase().replace(" ", "_")
+                )
+                onPhotoSelected(localUri)
+                isProcessing = false
             }
         }
     }
@@ -199,7 +168,7 @@ fun WorkProofThumbnailSlot(
     var thumbnailBitmap by remember(photoUri) { mutableStateOf<Bitmap?>(null) }
     LaunchedEffect(photoUri) {
         if (photoUri != null) {
-            withContext(Dispatchers.IO) {
+            thumbnailBitmap = withContext(Dispatchers.IO) {
                 try {
                     val fileUri = Uri.parse(photoUri)
                     val stream = if (fileUri.scheme == "file") {
@@ -207,9 +176,9 @@ fun WorkProofThumbnailSlot(
                     } else {
                         context.contentResolver.openInputStream(fileUri)
                     }
-                    thumbnailBitmap = stream?.use { BitmapFactory.decodeStream(it) }
+                    stream?.use { BitmapFactory.decodeStream(it) }
                 } catch (e: Exception) {
-                    thumbnailBitmap = null
+                    null
                 }
             }
         } else {
