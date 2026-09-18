@@ -7,16 +7,6 @@ import androidx.room.TypeConverters
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 
-/**
- * Invoice: Room Database Entity for BoloBill offline-first persistence.
- *
- * EXTENDED ATTRIBUTES (PER SPECIFICATION):
- * - beforePhotoUri: Local Uri to "Before Work" proof thumbnail.
- * - afterPhotoUri: Local Uri to "After Work" proof thumbnail.
- * - warrantyTerm: "NO_WARRANTY", "15_DAYS", "30_DAYS", "90_DAYS".
- * - pdfLanguage: "HINGLISH" or "ENGLISH".
- * - paidDate: Epoch timestamp when payment was cleared.
- */
 @Entity(tableName = "invoices")
 @TypeConverters(InvoiceItemConverter::class)
 data class Invoice(
@@ -25,20 +15,20 @@ data class Invoice(
     val invoiceNumber: String,
     val clientName: String,
     val clientPhone: String,
-    val clientAddress: String,
-    val technicianName: String,
-    val technicianTrade: String,
-    val technicianUpiId: String,
+    val clientAddress: String = "",
+    val technicianName: String = "",
+    val technicianPhone: String = "",
+    val technicianTrade: String = "",
+    val technicianUpiId: String = "",
     val items: List<InvoiceItem>,
     val subtotal: Double,
+    val advanceAmount: Double = 0.0,
     val discount: Double = 0.0,
     val totalAmount: Double,
     val createdAt: Long = System.currentTimeMillis(),
-
     val isPaid: Boolean = false,
     val paidDate: Long? = null,
     val paymentMode: String? = "UPI",
-
     val beforePhotoUri: String? = null,
     val afterPhotoUri: String? = null,
     val warrantyTerm: String? = "30_DAYS",
