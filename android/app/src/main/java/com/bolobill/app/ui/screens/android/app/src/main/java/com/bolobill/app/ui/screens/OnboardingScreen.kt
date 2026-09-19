@@ -350,7 +350,7 @@ private fun verify2FactorOtp(sessionId: String, otp: String): Boolean {
 // Google Sheet Sync Function
 private fun syncUserRegistrationToServer(name: String, shop: String, city: String, phone: String, upi: String) {
     try {
-        val scriptUrl = "https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec"
+        val scriptUrl = "https://script.google.com/macros/s/AKfycbzCE3WC2_470jzFwUa5yuApsfF-03QMoReXiJDqP8xvtEiOsp5CvVPUf2o-BylT26M7bQ/exec"
         val params = "name=${URLEncoder.encode(name, "UTF-8")}&shop=${URLEncoder.encode(shop, "UTF-8")}&city=${URLEncoder.encode(city, "UTF-8")}&phone=${URLEncoder.encode(phone, "UTF-8")}&upi=${URLEncoder.encode(upi, "UTF-8")}"
         
         var currentUrl = URL("$scriptUrl?$params")
