@@ -24,6 +24,13 @@ data class Invoice(
     val subtotal: Double,
     val advanceAmount: Double = 0.0,
     val discount: Double = 0.0,
+    
+    // --- GST फ़ील्ड्स (कच्चा vs पक्का GST इनवॉइस) ---
+    val isGstInvoice: Boolean = false,
+    val gstNumber: String = "",
+    val gstRate: Double = 18.0,
+    val gstAmount: Double = 0.0,
+    
     val totalAmount: Double,
     val createdAt: Long = System.currentTimeMillis(),
     val isPaid: Boolean = false,
