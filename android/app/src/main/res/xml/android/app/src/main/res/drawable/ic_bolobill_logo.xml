@@ -1,0 +1,39 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="120dp"
+    android:height="120dp"
+    android:viewportWidth="120"
+    android:viewportHeight="120">
+    
+    <!-- Background Circle -->
+    <path
+        android:fillColor="#2563EB"
+        android:pathData="M60,0A60,60 0,1 1,0 60A60,60 0,0 1,60 0z" />
+    
+    <!-- Invoice Sheet Shape -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M38,26 L82,26 A4,4 0 0,1 86,30 L86,90 L78,84 L70,90 L60,84 L50,90 L42,84 L34,90 L34,30 A4,4 0 0,1 38,26 Z" />
+    
+    <!-- Microphone / Voice Wave in Emerald Green -->
+    <path
+        android:fillColor="#10B981"
+        android:pathData="M60,38 A7,7 0 0,0 53,45 L53,56 A7,7 0 0,0 67,56 L67,45 A7,7 0 0,0 60,38 Z" />
+    <path
+        android:strokeColor="#10B981"
+        android:strokeWidth="2.5"
+        android:strokeLineCap="round"
+        android:pathData="M48,52 A12,12 0 0,0 72,52" />
+    <path
+        android:strokeColor="#10B981"
+        android:strokeWidth="2.5"
+        android:strokeLineCap="round"
+        android:pathData="M60,64 L60,70 M54,70 L66,70" />
+    
+    <!-- Bill Rupee Symbol Accent -->
+    <path
+        android:fillColor="#2563EB"
+        android:pathData="M48,76 L58,76 M48,79 L58,79"
+        android:strokeColor="#2563EB"
+        android:strokeWidth="1.5"
+        android:strokeLineCap="round" />
+</vector>
