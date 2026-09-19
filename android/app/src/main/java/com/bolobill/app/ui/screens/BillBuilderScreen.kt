@@ -340,6 +340,49 @@ val balanceDue = maxOf(0.0, grossTotal - adv)
                 }
             }
 
+            Card(
+    modifier = Modifier.fillMaxWidth(),
+    shape = RoundedCornerShape(12.dp),
+    colors = CardDefaults.cardColors(
+        containerColor = if (isGstInvoice) Color(0xFFEFF6FF) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f)
+    )
+) {
+    Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Column {
+                Text(
+                    if (isGstInvoice) "पक्का GST बिल (Tax Invoice 18%)" else "कच्चा बिल / कोटेशन (Estimate Bill)",
+                    fontWeight = FontWeight.Bold,
+                    color = if (isGstInvoice) Color(0xFF1D4ED8) else MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    if (isGstInvoice) "CGST 9% + SGST 9% लागू होगा" else "बिना टैक्स का साधारण एस्टीमेट",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.outline
+                )
+            }
+            Switch(
+                checked = isGstInvoice,
+                onCheckedChange = { isGstInvoice = it }
+            )
+        }
+
+        if (isGstInvoice) {
+            OutlinedTextField(
+                value = gstNumber,
+                onValueChange = { gstNumber = it.uppercase() },
+                label = { Text("GSTIN नंबर (वैकल्पिक)") },
+                placeholder = { Text("07AAAAA0000A1Z5") },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
+    }
+}
             // Work Proof Photos
             item {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
