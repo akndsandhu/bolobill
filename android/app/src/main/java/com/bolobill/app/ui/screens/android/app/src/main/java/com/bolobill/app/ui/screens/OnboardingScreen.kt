@@ -165,14 +165,35 @@ fun OnboardingScreen(
 
 private fun syncUserRegistrationToServer(name: String, shop: String, city: String, phone: String, upi: String) {
     try {
+        // अपना असली Google Web App URL यहाँ डालें
         val scriptUrl = "https://script.google.com/macros/s/AKfycbzCE3WC2_470jzFwUa5yuApsfF-03QMoReXiJDqP8xvtEiOsp5CvVPUf2o-BylT26M7bQ/exec"
         val params = "name=${URLEncoder.encode(name, "UTF-8")}&shop=${URLEncoder.encode(shop, "UTF-8")}&city=${URLEncoder.encode(city, "UTF-8")}&phone=${URLEncoder.encode(phone, "UTF-8")}&upi=${URLEncoder.encode(upi, "UTF-8")}"
-        val url = URL("$scriptUrl?$params")
-        val conn = url.openConnection() as HttpURLConnection
-        conn.requestMethod = "GET"
-        conn.connectTimeout = 5000
-        conn.readTimeout = 5000
-        conn.responseCode
-        conn.disconnect()
-    } catch (_: Exception) {}
+        
+        var currentUrl = URL("$scriptUrl?$params")
+        var redirects = 0
+        
+        // Follow redirects (HTTP 302) for Google Apps Script
+        while (redirects < 4) {
+            val conn = currentUrl.openConnection() as HttpURLConnection
+            conn.instanceFollowRedirects = true
+            conn.requestMethod = "GET"
+            conn.connectTimeout = 8000
+            conn.readTimeout = 8000
+            
+            val status = conn.responseCode
+            if (status == HttpURLConnection.HTTP_MOVED_TEMP || status == HttpURLConnection.HTTP_MOVED_PERM || status == 307) {
+                val newUrl = conn.getHeaderField("Location")
+                conn.disconnect()
+                if (newUrl != null) {
+                    currentUrl = URL(newUrl)
+                    redirects++
+                    continue
+                }
+            }
+            conn.disconnect()
+            break
+        }
+    } catch (e: Exception) {
+        e.printStackTrace()
+    }
 }
