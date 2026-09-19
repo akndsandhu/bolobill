@@ -42,7 +42,8 @@ import com.bolobill.app.util.WorkProofThumbnailSlot
 fun BillBuilderScreen(
     currentInvoice: Invoice,
     onSaveInvoice: (Invoice) -> Unit,
-    onNavigateToPreview: (Invoice) -> Unit
+    onNavigateToPreview: (Invoice) -> Unit,
+    onNavigateToSettings: () -> Unit = {}
 ) {
     val context = LocalContext.current
 
@@ -113,6 +114,11 @@ fun BillBuilderScreen(
                         Icon(Icons.Default.Translate, contentDescription = null, modifier = Modifier.size(16.dp))
                         Spacer(Modifier.width(4.dp))
                         Text(if (selectedLanguage == "ENGLISH") "EN" else "HI/हिन्दी")
+                    }
+
+                    // Settings Button
+                    IconButton(onClick = onNavigateToSettings) {
+                        Icon(Icons.Default.Settings, contentDescription = "Settings")
                     }
                 }
             )
