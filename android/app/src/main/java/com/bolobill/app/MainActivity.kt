@@ -6,21 +6,21 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.*
 import com.bolobill.app.data.model.Invoice
-import com.bolobill.app.ui.screens.BillBuilderScreen
-import com.bolobill.app.ui.screens.OnboardingScreen
-import com.bolobill.app.ui.screens.PdfPreviewScreen
+import com.bolobill.app.ui.screens.*
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             val prefs = remember { getSharedPreferences("bolobill_prefs", Context.MODE_PRIVATE) }
-            var isRegistered by remember { mutableStateOf(prefs.getBoolean("is_registered", false)) }
+            val isRegistered = prefs.getBoolean("is_registered", false)
 
-            val savedShop = prefs.getString("shop_name", "सर्विस सेंटर") ?: "सर्विस सेंटर"
-            val savedPhone = prefs.getString("phone", "") ?: ""
-            val savedCity = prefs.getString("city", "") ?: ""
-            val savedUpi = prefs.getString("upi_id", "") ?: ""
+            var currentScreen by remember { mutableStateOf("SPLASH") }
+
+            var shopName by remember { mutableStateOf(prefs.getString("shop_name", "मेरी दुकान") ?: "मेरी दुकान") }
+            var shopPhone by remember { mutableStateOf(prefs.getString("phone", "") ?: "") }
+            var shopCity by remember { mutableStateOf(prefs.getString("city", "") ?: "") }
+            var shopUpi by remember { mutableStateOf(prefs.getString("upi_id", "") ?: "") }
 
             var currentInvoice by remember {
                 mutableStateOf(
@@ -30,45 +30,75 @@ class MainActivity : ComponentActivity() {
                         clientName = "",
                         clientPhone = "",
                         clientAddress = "",
-                        technicianName = savedShop,
-                        technicianPhone = savedPhone,
-                        technicianTrade = savedCity,
-                        technicianUpiId = savedUpi,
+                        technicianName = shopName,
+                        technicianPhone = shopPhone,
+                        technicianTrade = shopCity,
+                        technicianUpiId = shopUpi,
                         items = emptyList(),
                         subtotal = 0.0,
                         totalAmount = 0.0
                     )
                 )
             }
-            var currentScreen by remember { mutableStateOf("BUILDER") }
 
-            if (!isRegistered) {
-                OnboardingScreen(
-                    onRegistrationComplete = { name, shop, city, phone, upi ->
-                        currentInvoice = currentInvoice.copy(
-                            technicianName = shop,
-                            technicianPhone = phone,
-                            technicianTrade = city,
-                            technicianUpiId = upi
-                        )
-                        isRegistered = true
-                    }
-                )
-            } else if (currentScreen == "BUILDER") {
-                BillBuilderScreen(
-                    currentInvoice = currentInvoice,
-                    onSaveInvoice = { currentInvoice = it },
-                    onNavigateToPreview = {
-                        currentInvoice = it
-                        currentScreen = "PREVIEW"
-                    }
-                )
-            } else {
-                PdfPreviewScreen(
-                    invoice = currentInvoice,
-                    onInvoiceUpdated = { currentInvoice = it },
-                    onBack = { currentScreen = "BUILDER" }
-                )
+            when (currentScreen) {
+                "SPLASH" -> {
+                    SplashScreen(
+                        isRegistered = isRegistered,
+                        onNavigateNext = { target -> currentScreen = target }
+                    )
+                }
+                "ONBOARDING" -> {
+                    OnboardingScreen(
+                        onRegistrationComplete = { _, shop, city, phone, upi ->
+                            shopName = shop
+                            shopCity = city
+                            shopPhone = phone
+                            shopUpi = upi
+                            currentInvoice = currentInvoice.copy(
+                                technicianName = shop,
+                                technicianPhone = phone,
+                                technicianTrade = city,
+                                technicianUpiId = upi
+                            )
+                            currentScreen = "BUILDER"
+                        }
+                    )
+                }
+                "SETTINGS" -> {
+                    ProfileSettingsScreen(
+                        onBack = { currentScreen = "BUILDER" },
+                        onSaved = { shop, phone, city, upi ->
+                            shopName = shop
+                            shopCity = city
+                            shopPhone = phone
+                            shopUpi = upi
+                            currentInvoice = currentInvoice.copy(
+                                technicianName = shop,
+                                technicianPhone = phone,
+                                technicianTrade = city,
+                                technicianUpiId = upi
+                            )
+                        }
+                    )
+                }
+                "PREVIEW" -> {
+                    PdfPreviewScreen(
+                        invoice = currentInvoice,
+                        onInvoiceUpdated = { currentInvoice = it },
+                        onBack = { currentScreen = "BUILDER" }
+                    )
+                }
+                else -> {
+                    BillBuilderScreen(
+                        currentInvoice = currentInvoice,
+                        onSaveInvoice = { currentInvoice = it },
+                        onNavigateToPreview = {
+                            currentInvoice = it
+                            currentScreen = "PREVIEW"
+                        }
+                    )
+                }
             }
         }
     }
