@@ -46,17 +46,20 @@ fun BillBuilderScreen(
 ) {
     val context = LocalContext.current
 
-    // दुकान / सर्विसमैन का विवरण
-    var shopName by remember { mutableStateOf(currentInvoice.technicianName.ifEmpty { "मेरी दुकान / सर्विस सेंटर" }) }
+    // Language State
+    var selectedLanguage by remember { mutableStateOf(currentInvoice.pdfLanguage.ifEmpty { "HINGLISH" }) }
+
+    // Shop Details
+    var shopName by remember { mutableStateOf(currentInvoice.technicianName) }
     var shopPhone by remember { mutableStateOf(currentInvoice.technicianPhone) }
-    var shopTrade by remember { mutableStateOf(currentInvoice.technicianTrade.ifEmpty { "इलेक्ट्रिकल एवं प्लंबिंग" }) }
+    var shopTrade by remember { mutableStateOf(currentInvoice.technicianTrade) }
     var upiId by remember { mutableStateOf(currentInvoice.technicianUpiId) }
 
-    // ग्राहक विवरण
+    // Customer Details (+91 & 10-digit lock)
     var clientName by remember { mutableStateOf(currentInvoice.clientName) }
     var clientPhone by remember { mutableStateOf(currentInvoice.clientPhone) }
 
-    // एडवांस और वारंटी
+    // Billing & Advance
     var advanceText by remember { mutableStateOf(if (currentInvoice.advanceAmount > 0) currentInvoice.advanceAmount.toString() else "") }
     var selectedWarranty by remember { mutableStateOf(currentInvoice.warrantyTerm ?: "30_DAYS") }
     var isPaid by remember { mutableStateOf(currentInvoice.isPaid) }
@@ -64,7 +67,7 @@ fun BillBuilderScreen(
     var afterPhotoUri by remember { mutableStateOf(currentInvoice.afterPhotoUri) }
     val itemsList = remember { mutableStateListOf<InvoiceItem>().apply { addAll(currentInvoice.items) } }
 
-    // आइटम जोड़ने / एडिट करने का डायलॉग स्टेट
+    // Dialog State
     var showItemDialog by remember { mutableStateOf(false) }
     var editingIndex by remember { mutableStateOf<Int?>(null) }
     var inputWorkName by remember { mutableStateOf("") }
@@ -72,14 +75,16 @@ fun BillBuilderScreen(
     var inputUnit by remember { mutableStateOf("nos") }
     var inputRate by remember { mutableStateOf("") }
 
-    // वॉइस रिकॉग्निशन लॉन्चर (Bolo Bill)
+    val unitsList = listOf("nos", "kg", "gm", "mtr", "ft", "coil", "pkt", "job")
+
     val speechLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
     ) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
             val spoken = result.data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)?.firstOrNull()
             if (!spoken.isNullOrBlank()) {
-                val parsed = TradeDictionary.parseSpokenUtterance(spoken, TradeDictionary.LanguageMode.HINGLISH)
+                val mode = if (selectedLanguage == "ENGLISH") TradeDictionary.LanguageMode.ENGLISH else TradeDictionary.LanguageMode.HINGLISH
+                val parsed = TradeDictionary.parseSpokenUtterance(spoken, mode)
                 parsed.forEach { item ->
                     itemsList.add(
                         InvoiceItem(
@@ -99,8 +104,17 @@ fun BillBuilderScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("BoloBill इनवॉइस मेकर", fontWeight = FontWeight.Bold) },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface)
+                title = { Text(if (selectedLanguage == "ENGLISH") "BoloBill Quotation" else "BoloBill इनवॉइस", fontWeight = FontWeight.Bold) },
+                actions = {
+                    // Language Change Option
+                    TextButton(onClick = {
+                        selectedLanguage = if (selectedLanguage == "ENGLISH") "HINGLISH" else "ENGLISH"
+                    }) {
+                        Icon(Icons.Default.Translate, contentDescription = null, modifier = Modifier.size(16.dp))
+                        Spacer(Modifier.width(4.dp))
+                        Text(if (selectedLanguage == "ENGLISH") "EN" else "HI/हिन्दी")
+                    }
+                }
             )
         },
         bottomBar = {
@@ -109,19 +123,14 @@ fun BillBuilderScreen(
                     modifier = Modifier.fillMaxWidth().padding(14.dp),
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    // बोलो बिल (Voice Mic) बटन
                     OutlinedButton(
                         onClick = {
                             val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
                                 putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
-                                putExtra(RecognizerIntent.EXTRA_LANGUAGE, "hi-IN")
-                                putExtra(RecognizerIntent.EXTRA_PROMPT, "बोलिए: जैसे '1 पंखा फिटिंग 350 aur 2 switch board 200'")
+                                putExtra(RecognizerIntent.EXTRA_LANGUAGE, if (selectedLanguage == "ENGLISH") "en-IN" else "hi-IN")
+                                putExtra(RecognizerIntent.EXTRA_PROMPT, "बोलिए: जैसे '2 kg taar 400 aur 1 pankha fitting 350'")
                             }
-                            try {
-                                speechLauncher.launch(intent)
-                            } catch (e: Exception) {
-                                // fallback if voice service not found
-                            }
+                            try { speechLauncher.launch(intent) } catch (_: Exception) {}
                         },
                         modifier = Modifier.weight(1f),
                         shape = RoundedCornerShape(12.dp)
@@ -131,20 +140,20 @@ fun BillBuilderScreen(
                         Text("बोलो बिल")
                     }
 
-                    // PDF प्रिव्यू बटन
                     Button(
                         onClick = {
                             val subtotal = itemsList.sumOf { it.amount }
                             val adv = advanceText.toDoubleOrNull() ?: 0.0
                             val finalPayable = maxOf(0.0, subtotal - adv)
                             val updated = currentInvoice.copy(
-                                technicianName = shopName.trim().ifEmpty { "सर्विस सेंटर" },
-                                technicianPhone = shopPhone.trim(),
-                                technicianTrade = shopTrade.trim(),
-                                technicianUpiId = upiId.trim(),
-                                clientName = clientName.trim().ifEmpty { "ग्राहक" },
-                                clientPhone = clientPhone.trim(),
+                                technicianName = shopName.ifEmpty { "Service Center" },
+                                technicianPhone = shopPhone,
+                                technicianTrade = shopTrade,
+                                technicianUpiId = upiId,
+                                clientName = clientName.ifEmpty { "Customer" },
+                                clientPhone = if (clientPhone.isNotEmpty()) "+91 $clientPhone" else "",
                                 warrantyTerm = selectedWarranty,
+                                pdfLanguage = selectedLanguage,
                                 beforePhotoUri = beforePhotoUri,
                                 afterPhotoUri = afterPhotoUri,
                                 items = itemsList.toList(),
@@ -160,9 +169,9 @@ fun BillBuilderScreen(
                         modifier = Modifier.weight(1.3f),
                         shape = RoundedCornerShape(12.dp)
                     ) {
-                        Icon(Icons.Default.PictureAsPdf, contentDescription = "Generate PDF")
+                        Icon(Icons.Default.PictureAsPdf, contentDescription = "PDF")
                         Spacer(Modifier.width(6.dp))
-                        Text("बिल बनाएं & PDF")
+                        Text("Preview & PDF")
                     }
                 }
             }
@@ -172,50 +181,12 @@ fun BillBuilderScreen(
             modifier = Modifier.fillMaxSize().padding(paddingValues).padding(horizontal = 14.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            // 1. दुकान / सर्विसमैन विवरण कार्ड
+            // Customer Details Card
             item {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(14.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
-                ) {
-                    Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text("आपकी दुकान / सर्विसमैन विवरण (Bill Header)", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleSmall)
-                        OutlinedTextField(
-                            value = shopName,
-                            onValueChange = { shopName = it },
-                            label = { Text("दुकान / आपका नाम") },
-                            singleLine = true,
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            OutlinedTextField(
-                                value = shopPhone,
-                                onValueChange = { shopPhone = it },
-                                label = { Text("मोबाइल नंबर") },
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
-                                singleLine = true,
-                                modifier = Modifier.weight(1f)
-                            )
-                            OutlinedTextField(
-                                value = upiId,
-                                onValueChange = { upiId = it },
-                                label = { Text("UPI ID (QR पेमेंट हेतु)") },
-                                placeholder = { Text("mobile@paytm") },
-                                singleLine = true,
-                                modifier = Modifier.weight(1f)
-                            )
-                        }
-                    }
-                }
-            }
-
-            // 2. ग्राहक विवरण
-            item {
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(14.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f))
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f))
                 ) {
                     Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text("ग्राहक विवरण (Customer Details)", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleSmall)
@@ -223,14 +194,19 @@ fun BillBuilderScreen(
                             value = clientName,
                             onValueChange = { clientName = it },
                             label = { Text("ग्राहक का नाम") },
+                            leadingIcon = { Icon(Icons.Default.Person, contentDescription = null) },
                             singleLine = true,
                             modifier = Modifier.fillMaxWidth()
                         )
                         OutlinedTextField(
                             value = clientPhone,
-                            onValueChange = { clientPhone = it },
-                            label = { Text("ग्राहक का WhatsApp नंबर") },
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+                            onValueChange = { input ->
+                                clientPhone = input.filter { it.isDigit() }.take(10)
+                            },
+                            label = { Text("WhatsApp नंबर (10 Digits)") },
+                            prefix = { Text("+91 ", fontWeight = FontWeight.Bold) },
+                            leadingIcon = { Icon(Icons.Default.Phone, contentDescription = null) },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                             singleLine = true,
                             modifier = Modifier.fillMaxWidth()
                         )
@@ -238,7 +214,7 @@ fun BillBuilderScreen(
                 }
             }
 
-            // 3. काम और सामान (Custom Line Items)
+            // Line Items List Header
             item {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -264,7 +240,6 @@ fun BillBuilderScreen(
                 }
             }
 
-            // आइटम्स की सूची (टैप करने पर एडिट होगा)
             itemsIndexed(itemsList) { index, item ->
                 Card(
                     modifier = Modifier.fillMaxWidth().clickable {
@@ -285,7 +260,7 @@ fun BillBuilderScreen(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
-                            Text(item.name, fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.bodyLarge)
+                            Text(item.name, fontWeight = FontWeight.SemiBold)
                             Text(
                                 "दर: ₹${item.rate} x ${item.quantity} ${item.unit}",
                                 style = MaterialTheme.typography.bodySmall,
@@ -302,7 +277,7 @@ fun BillBuilderScreen(
                 }
             }
 
-            // 4. बिल योग & एडवांस पेमेंट कैलकुलेशन
+            // Advance & Balance Calculation Card
             item {
                 val subtotal = itemsList.sumOf { it.amount }
                 val adv = advanceText.toDoubleOrNull() ?: 0.0
@@ -315,11 +290,10 @@ fun BillBuilderScreen(
                 ) {
                     Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                            Text("कुल काम का बिल (Subtotal):", style = MaterialTheme.typography.bodyLarge)
+                            Text("कुल बिल (Subtotal):", style = MaterialTheme.typography.bodyLarge)
                             Text("₹$subtotal", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
                         }
 
-                        // एडवांस पेमेंट इनपुट फ़ील्ड
                         OutlinedTextField(
                             value = advanceText,
                             onValueChange = { advanceText = it },
@@ -337,7 +311,7 @@ fun BillBuilderScreen(
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text("बाकी राशि (Balance Payable):", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
+                            Text("बाकी राशि (Balance Due):", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
                             Text(
                                 "₹$balanceDue",
                                 fontWeight = FontWeight.ExtraBold,
@@ -349,10 +323,10 @@ fun BillBuilderScreen(
                 }
             }
 
-            // 5. काम के फ़ोटो (Before / After)
+            // Work Proof Photos
             item {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("काम का प्रमाण फ़ोटो (Before & After)", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleSmall)
+                    Text("काम का प्रमाण फोटो (Before & After)", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleSmall)
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         WorkProofThumbnailSlot(
                             title = "Before Work",
@@ -370,13 +344,13 @@ fun BillBuilderScreen(
                 }
             }
 
-            // 6. सर्विस वारंटी चिप्स
+            // Warranty Chips
             item {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text("सर्विस गारंटी / वारंटी", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleSmall)
                     val warrantyOptions = listOf(
                         "NO_WARRANTY" to "कोई वारंटी नहीं",
-                        "15_DAYS" to "15 दिन गारंटी",
+                        "15_DAYS" to "15 दिन",
                         "30_DAYS" to "30 दिन गारंटी",
                         "90_DAYS" to "90 दिन गारंटी"
                     )
@@ -393,7 +367,7 @@ fun BillBuilderScreen(
                 }
             }
 
-            // 7. भुगतान रसीद मोड स्विच
+            // Mark as Paid Switch
             item {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
@@ -414,7 +388,7 @@ fun BillBuilderScreen(
                                 color = if (isPaid) Color(0xFF166534) else MaterialTheme.colorScheme.onSurface
                             )
                             Text(
-                                if (isPaid) "PDF पर हरे रंग का PAID स्टैम्प लगेगा" else "PDF पर स्कैन करने हेतु UPI QR कोड रहेगा",
+                                if (isPaid) "PDF पर हरे रंग का PAID स्टैम्प लगेगा" else "PDF पर स्कैन हेतु UPI QR कोड रहेगा",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.outline
                             )
@@ -426,7 +400,7 @@ fun BillBuilderScreen(
         }
     }
 
-    // काम / आइटम कस्टमाइज़ करने का डायलॉग
+    // Custom Item Input Dialog with Unit Dropdown/Selection
     if (showItemDialog) {
         AlertDialog(
             onDismissRequest = { showItemDialog = false },
@@ -437,7 +411,7 @@ fun BillBuilderScreen(
                         value = inputWorkName,
                         onValueChange = { inputWorkName = it },
                         label = { Text("काम / सामान का नाम") },
-                        placeholder = { Text("उदा. पंखा फिटिंग / पाइप रिपेयर") },
+                        placeholder = { Text("उदा. कॉपर वायर / पाइप फिटिंग") },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth()
                     )
@@ -445,26 +419,38 @@ fun BillBuilderScreen(
                         OutlinedTextField(
                             value = inputQty,
                             onValueChange = { inputQty = it },
-                            label = { Text("संख्या (Qty)") },
+                            label = { Text("मात्रा (Qty)") },
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                             modifier = Modifier.weight(1f)
                         )
                         OutlinedTextField(
-                            value = inputUnit,
-                            onValueChange = { inputUnit = it },
-                            label = { Text("यूनिट") },
-                            placeholder = { Text("nos, ft, job") },
+                            value = inputRate,
+                            onValueChange = { inputRate = it },
+                            label = { Text("दर/रेट (₹)") },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                             modifier = Modifier.weight(1f)
                         )
                     }
-                    OutlinedTextField(
-                        value = inputRate,
-                        onValueChange = { inputRate = it },
-                        label = { Text("कीमत / रेट (₹)") },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth()
-                    )
+
+                    Text("यूनिट चुनें:", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                        unitsList.take(4).forEach { u ->
+                            FilterChip(
+                                selected = inputUnit == u,
+                                onClick = { inputUnit = u },
+                                label = { Text(u, fontSize = 11.sp) }
+                            )
+                        }
+                    }
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                        unitsList.drop(4).forEach { u ->
+                            FilterChip(
+                                selected = inputUnit == u,
+                                onClick = { inputUnit = u },
+                                label = { Text(u, fontSize = 11.sp) }
+                            )
+                        }
+                    }
                 }
             },
             confirmButton = {
@@ -476,7 +462,7 @@ fun BillBuilderScreen(
                         id = if (editingIndex != null) itemsList[editingIndex!!].id else "item_${System.currentTimeMillis()}",
                         name = name,
                         quantity = qty,
-                        unit = inputUnit.trim().ifEmpty { "nos" },
+                        unit = inputUnit,
                         rate = rate,
                         amount = qty * rate
                     )
