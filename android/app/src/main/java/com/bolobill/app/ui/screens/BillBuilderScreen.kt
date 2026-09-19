@@ -60,6 +60,17 @@ fun BillBuilderScreen(
     var clientName by remember { mutableStateOf(currentInvoice.clientName) }
     var clientPhone by remember { mutableStateOf(currentInvoice.clientPhone) }
 
+    // GST States
+var isGstInvoice by remember { mutableStateOf(currentInvoice.isGstInvoice) }
+var gstNumber by remember { mutableStateOf(currentInvoice.gstNumber) }
+val gstRate = 18.0
+
+// Live Calculation Logic
+val subtotal = itemsList.sumOf { it.amount }
+val gstAmount = if (isGstInvoice) (subtotal * (gstRate / 100.0)) else 0.0
+val grossTotal = subtotal + gstAmount
+val adv = advanceText.toDoubleOrNull() ?: 0.0
+val balanceDue = maxOf(0.0, grossTotal - adv)
     // Billing & Advance
     var advanceText by remember { mutableStateOf(if (currentInvoice.advanceAmount > 0) currentInvoice.advanceAmount.toString() else "") }
     var selectedWarranty by remember { mutableStateOf(currentInvoice.warrantyTerm ?: "30_DAYS") }
