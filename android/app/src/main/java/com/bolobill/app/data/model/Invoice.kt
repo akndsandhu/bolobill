@@ -25,21 +25,21 @@ data class Invoice(
     val advanceAmount: Double = 0.0,
     val discount: Double = 0.0,
     
-    // 1. GST & Invoice Type (कोटेशन / कच्चा एस्टीमेट vs पक्का बिल)
+    // GST & Invoice Types
     val isGstInvoice: Boolean = false,
-    val isEstimate: Boolean = false, // true = कच्चा कोटेशन, false = पक्का बिल
+    val isEstimate: Boolean = false,
     val gstNumber: String = "",
     val gstRate: Double = 18.0,
     val gstAmount: Double = 0.0,
 
-    // 2. Split Payment (नकद + ऑनलाइन)
-    val paymentMode: String? = "UPI", // "UPI", "CASH", "SPLIT"
+    // Split Payment Mode
+    val paymentMode: String? = "UPI",
     val cashReceived: Double = 0.0,
     val onlineReceived: Double = 0.0,
 
-    // 3. Customer Digital Signature & Star Rating
+    // Signature & Star Rating
     val signaturePath: String? = null,
-    val customerRating: Int = 5, // 1 to 5 Stars
+    val customerRating: Int = 5,
     val customerFeedback: String = "",
 
     val totalAmount: Double,
@@ -62,38 +62,38 @@ data class InvoiceItem(
     val amount: Double = 0.0
 )
 
-// रिपेयरिंग टोकन / जॉब कार्ड मॉडल
-data class JobCard(
-    val id: String,
-    val tokenNumber: String,
-    val customerName: String,
-    val customerPhone: String,
-    val itemName: String, // पंखा, मिक्सी, मोटर
-    val problemDescription: String,
-    val estimatedCost: Double,
-    val advancePaid: Double = 0.0,
-    val photoUri: String? = null,
-    val status: String = "RECEIVED", // RECEIVED, IN_PROGRESS, READY, DELIVERED
-    val createdAt: Long = System.currentTimeMillis()
-)
-
-// दैनिक खर्च (Daily Expense) मॉडल
+// Daily Expense Model (DailyExpenseScreen ke liye)
 data class DailyExpense(
     val id: String,
-    val category: String, // मटेरियल, चाय-नाश्ता, पेट्रोल, दुकान किराया
+    val category: String,
     val note: String,
     val amount: Double,
     val date: Long = System.currentTimeMillis()
 )
 
-// हेल्पर / कारीगर दिहाड़ी मॉडल
+// Job Card Model
+data class JobCard(
+    val id: String,
+    val tokenNumber: String,
+    val customerName: String,
+    val customerPhone: String,
+    val itemName: String,
+    val problemDescription: String,
+    val estimatedCost: Double,
+    val advancePaid: Double = 0.0,
+    val photoUri: String? = null,
+    val status: String = "RECEIVED",
+    val createdAt: Long = System.currentTimeMillis()
+)
+
+// Helper Wage Model
 data class HelperWage(
     val id: String,
     val helperName: String,
     val date: Long = System.currentTimeMillis(),
     val dailyRate: Double,
     val advancePaid: Double = 0.0,
-    val attendance: String = "PRESENT" // PRESENT, HALF_DAY, ABSENT
+    val attendance: String = "PRESENT"
 )
 
 class InvoiceItemConverter {
